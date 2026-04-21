@@ -43,7 +43,7 @@ def extract_title(markdown):
 
 	raise Exception("No title in markdown")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
 	print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 	MAX_FILE = 10000
 
@@ -66,7 +66,8 @@ def generate_page(from_path, template_path, dest_path):
 	title = extract_title(markdown)
 	template = template.replace("{{ Title }}", title)
 	template = template.replace("{{ Content }}", html_string)
-
+	template = template.replace("href=\"/", f"href=\"{basepath}")
+	template = template.replace("src=\"/", f"src=\"{basepath}")
 	dir_path = os.path.dirname(dest_path)
 	if not os.path.exists(dir_path):
 		os.makedirs(dir_path)
@@ -74,7 +75,7 @@ def generate_page(from_path, template_path, dest_path):
 	with open(dest_path, 'w') as f:
 		f.write(template)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
 	if not os.path.exists(dir_path_content):
 		raise Exception("From path doesn't exist")
 
@@ -82,9 +83,9 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
 		instance_path = os.path.join(dir_path_content, instance)
 		#print(f"instance_path: {instance_path}")
 		if os.path.isdir(instance_path):
-			generate_pages_recursive(instance_path, template_path, dest_dir_path)
+			generate_pages_recursive(instance_path, template_path, dest_dir_path, basepath)
 		elif os.path.isfile(instance_path) and instance.endswith(".md"):
-			generate_page(instance_path, template_path, dest_dir_path + '/' + instance_path[instance_path.find('/')+1:].replace('.md', '.html'))
+			generate_page(instance_path, template_path, dest_dir_path + '/' + instance_path[instance_path.find('/')+1:].replace('.md', '.html'), basepath)
 			#print(f"generate_page({instance_path}, {template_path}, {dest_dir_path + '/' + instance_path[instance_path.find('/')+1:].replace('.md', '.html')})")
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
